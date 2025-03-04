@@ -1,4 +1,4 @@
-export class Embed {
+export default class Embed {
     setTitle(title) {
         this.title = title;
     }
