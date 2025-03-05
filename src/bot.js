@@ -159,10 +159,15 @@ export default class Bot {
                 if (command) {
                     command({
                         reply: (content) => {
-                            let responseData = typeof content === 'string' 
-                                ? { content } // Hvis det er en ren tekstmelding
-                                : content;    // Hvis det er et objekt (f.eks. med embeds, components osv.)
-                        
+                            let responseData;
+                            if (typeof(content) === "string") {
+                                responseData = { content };
+                            } else {
+                                responseData = content;
+                                if (responseData.ephemeral) {
+                                    responseData.flags = 64;
+                                }
+                            }
                             return fetch(`${this.baseUrl}/interactions/${interaction.id}/${interaction.token}/callback`, {
                                 method: 'POST',
                                 headers: {
