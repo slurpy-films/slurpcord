@@ -1,7 +1,7 @@
-import sendMessage from './utils/sendMessage.js';
-import fetchGuild from './utils/fetchGuild.js';
+import sendMessage from './utils/messages/sendMessage.js';
 import registerCommands from './slashCommands.js';
-
+import { getCachedChannel, getCachedGuild, getCachedMember, getCachedUser } from './cache.js';
+import { channel, user, fetchGuild } from "./utils/utils.js"; 
 let sequence = null;
 
 export default class Bot {
@@ -91,7 +91,7 @@ export default class Bot {
                     op: 2,
                     d: {
                         token: this.token,
-                        intents: 513 | 32768,
+                        intents: 513 | 32768 | 8,
                         properties: {
                             os: 'linux',
                             browser: 'bot',
@@ -113,20 +113,22 @@ export default class Bot {
                 if (message.content.startsWith(this.prefix)) {
                     const [cmd, ...args] = message.content.slice(this.prefix.length).split(/\s+/);
                     const command = this.commands.get(cmd);
-                    let guild;
-
                     const input = message.content.split(this.prefix + cmd + "")[1];
-                    if (message.guild_id) {
-                        guild = await fetchGuild(message.guild_id, this.token);
-                    }
+
+                    const [guild, userdata, channelData, member] = await Promise.all([
+                        message.guild_id ? getCachedGuild(message.guild_id, this.token) : null,
+                        getCachedUser(message.author, this.token),
+                        getCachedChannel(message.channel_id, this.token),
+                        getCachedMember(message.guild_id, message.author, this.token)
+                    ]);                    
                     if (command) {
                         command({
                             reply: (content) => sendMessage(message.channel_id, content, this.token, message.id),
                             message,
-                            channel: {
-                                send: (content) => sendMessage(message.channel_id, content, this.token)
-                            },
+                            user: userdata,
+                            channel: channelData,
                             guild: guild ? guild : undefined,
+                            member: member
                         }, input);
                     }
                 }
@@ -156,6 +158,14 @@ export default class Bot {
                         interaction.options[option.name] = option.value;
                     }
                 }
+                const [channel, userdata, guild, member] = await Promise.all([
+                    getCachedChannel(interaction.channel_id, this.token),
+                    getCachedUser(interaction.member.user, this.token),
+                    getCachedGuild(interaction.guild_id, this.token),
+                    getCachedMember(interaction.guild_id, interaction.member, this.token)
+                ]);
+
+
                 if (command) {
                     command({
                         reply: (content) => {
@@ -178,11 +188,12 @@ export default class Bot {
                                     data: responseData
                                 })
                             });
-                        },                        
-                        interaction,
-                        channel: {
-                            send: (content) => sendMessage(interaction.channel_id, content, this.token)
                         },
+                        interaction,
+                        channel: channel,
+                        guild: guild,
+                        user: userdata,
+                        member: member,
                         getOption: (name) => interaction.options[name]
                     });
                 }
