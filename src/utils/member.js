@@ -1,4 +1,4 @@
-import { decodePermissions } from "./permissions.js";
+import { getUserPermissions } from "./permissions.js";
 
 export default async function member(data, guildId, token) {
 
@@ -30,9 +30,7 @@ export default async function member(data, guildId, token) {
         });
     }
 
-    memberData.hasPermission = (permission) => {
-        return decodePermissions(data.permissions).includes(permission);
-    }
+    memberData.permissions = await getUserPermissions(token, data.user.id, guildId);
 
     return memberData;
 }

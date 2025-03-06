@@ -1,11 +1,18 @@
 import member from "./member.js";
 import channel from "./channel.js";
+import { memberIsIsCache, getCachedMember, addMemberToCache } from "../cache.js";
 
 export default async function guild(data, token) {
     const guildData = data;
 
     guildData.members = {
         fetch: async (userId) => {
+            if (!userId) return null;
+
+            if (memberIsIsCache(userId, data.id)) {
+                return await getCachedMember(data.id, { id: userId }, token);
+            }
+
             const response = await fetch(`https://discord.com/api/v10/guilds/${data.id}/members/${userId}`, {
                 method: 'GET',
                 headers: {
@@ -14,12 +21,19 @@ export default async function guild(data, token) {
             });
 
             if (!response.ok) {
-                console.error('Failed to fetch member:', await response.json());
                 return null;
             }
 
             const memberData = await response.json();
-            return await member(memberData, data.id, token);
+
+            // Hent medlemmet med full informasjon, inkludert permissions
+            const memberWithPermissions = await member(memberData, data.id, token);
+
+            // Legg til permissions som et dekodet array
+
+            addMemberToCache(memberData, token, data.id);
+
+            return memberWithPermissions;
         }
     };
 

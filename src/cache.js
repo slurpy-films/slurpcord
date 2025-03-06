@@ -44,12 +44,23 @@ export async function getCachedUser(data, token) {
 // Fetch cached or fresh member data
 export async function getCachedMember(guildId, user, token) {
     const memberCacheKey = `${guildId}-${user.id}`;
-
     if (cache.members.has(memberCacheKey)) {
         return cache.members.get(memberCacheKey);
     }
-
     const memberData = await member(user, guildId, token);
     cache.members.set(memberCacheKey, memberData);
     return memberData;
+}
+
+
+export function memberIsIsCache(userId, guildId) {
+    const memberCacheKey = `${guildId}-${userId}`;
+    return cache.members.has(memberCacheKey);
+}
+
+
+export async function addMemberToCache(data, token, guildId) {
+    const memberkey = `${guildId}-${data.user.id}`;
+    if (cache.members.has(memberkey)) return;
+    cache.members.set(memberkey, await member(data, guildId, token));
 }

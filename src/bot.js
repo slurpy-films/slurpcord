@@ -119,7 +119,6 @@ export default class Bot {
                         message.guild_id ? getCachedGuild(message.guild_id, this.token) : null,
                         getCachedUser(message.author, this.token),
                         getCachedChannel(message.channel_id, this.token),
-                        getCachedMember(message.guild_id, message.author, this.token)
                     ]);                    
                     if (command) {
                         command({
@@ -128,7 +127,6 @@ export default class Bot {
                             user: userdata,
                             channel: channelData,
                             guild: guild ? guild : undefined,
-                            member: member
                         }, input);
                     }
                 }
