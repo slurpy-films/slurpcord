@@ -1,7 +1,7 @@
 import sendMessage from './utils/messages/sendMessage.js';
 import registerCommands from './slashCommands.js';
 import { getCachedChannel, getCachedGuild, getCachedMember, getCachedUser } from './cache.js';
-import { channel, user, fetchGuild } from "./utils/utils.js"; 
+import { commandInteraction, buttonInteraction } from './interactions/index.js';
 let sequence = null;
 
 export default class Bot {
@@ -11,8 +11,9 @@ export default class Bot {
         this.baseUrl = "https://discord.com/api/v10";
         this.commands = new Map();
         this.slashCmds = new Map();
+        this.buttons = [];
         this.activity = null;
-        this.connected = false; // Sjekk for HELLO-event
+        this.connected = false;
         this.guilds = [];
     }
 
@@ -34,6 +35,10 @@ export default class Bot {
 
     setPrefix(prefix) {
         this.prefix = prefix;
+    }
+
+    button(action) {
+        this.buttons.push(action);
     }
 
     setActivity(name, type = 0) {
@@ -115,11 +120,11 @@ export default class Bot {
                     const command = this.commands.get(cmd);
                     const input = message.content.split(this.prefix + cmd + "")[1];
 
-                    const [guild, userdata, channelData, member] = await Promise.all([
+                    const [guild, userdata, channelData] = await Promise.all([
                         message.guild_id ? getCachedGuild(message.guild_id, this.token) : null,
                         getCachedUser(message.author, this.token),
                         getCachedChannel(message.channel_id, this.token),
-                    ]);                    
+                    ]);
                     if (command) {
                         command({
                             reply: (content) => sendMessage(message.channel_id, content, this.token, message.id),
@@ -149,7 +154,11 @@ export default class Bot {
                 }
             } else if (event === "INTERACTION_CREATE") {
                 let interaction = messageData;
-                const command = this.slashCmds.get(interaction.data.name);
+
+                if (interaction.type === 2) {
+                interaction = commandInteraction(interaction);
+
+                const commandfunc = this.slashCmds.get(interaction.data.name);
                 interaction.options = {};
                 if (interaction.data.options) {
                     for (let option of interaction.data.options) {
@@ -163,38 +172,37 @@ export default class Bot {
                     getCachedMember(interaction.guild_id, interaction.member, this.token)
                 ]);
 
+                interaction.user = userdata;
+                interaction.channel = channel;
+                interaction.guild = guild;
+                interaction.member = member;
 
-                if (command) {
-                    command({
-                        reply: (content) => {
-                            let responseData;
-                            if (typeof(content) === "string") {
-                                responseData = { content };
-                            } else {
-                                responseData = content;
-                                if (responseData.ephemeral) {
-                                    responseData.flags = 64;
-                                }
-                            }
-                            return fetch(`${this.baseUrl}/interactions/${interaction.id}/${interaction.token}/callback`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    type: 4,
-                                    data: responseData
-                                })
-                            });
-                        },
-                        interaction,
-                        channel: channel,
-                        guild: guild,
-                        user: userdata,
-                        member: member,
-                        getOption: (name) => interaction.options[name]
+
+
+                if (commandfunc) {
+                    commandfunc(interaction);
+                }
+                } else if (interaction.type === 3) {
+                    interaction = buttonInteraction(interaction);
+
+                    const [channel, userdata, guild, member] = await Promise.all([
+                        getCachedChannel(interaction.channel_id, this.token),
+                        getCachedUser(interaction.member.user, this.token),
+                        getCachedGuild(interaction.guild_id, this.token),
+                        getCachedMember(interaction.guild_id, interaction.member, this.token)
+                    ]);
+
+                    interaction.user = userdata;
+                    interaction.guild = guild;
+                    interaction.member = member;
+                    interaction.channel = channel;
+
+                    this.buttons.forEach(func => {
+                        func(interaction);
                     });
                 }
+                
+
             }
         });
     }

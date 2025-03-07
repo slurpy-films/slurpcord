@@ -1,4 +1,4 @@
-import { member, fetchGuild, channel, user, guild } from "./utils/utils.js";
+import { member, fetchGuild, channel, user, guild } from "./utils/index.js";
 
 const cache = {
     guilds: new Map(),

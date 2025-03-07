@@ -1,6 +1,6 @@
 import member from "./member.js";
 import channel from "./channel.js";
-import { memberIsIsCache, getCachedMember, addMemberToCache } from "../cache.js";
+import { memberIsIsCache, getCachedMember, addMemberToCache } from "../../cache.js";
 
 export default async function guild(data, token) {
     const guildData = data;
@@ -26,10 +26,8 @@ export default async function guild(data, token) {
 
             const memberData = await response.json();
 
-            // Hent medlemmet med full informasjon, inkludert permissions
             const memberWithPermissions = await member(memberData, data.id, token);
 
-            // Legg til permissions som et dekodet array
 
             addMemberToCache(memberData, token, data.id);
 

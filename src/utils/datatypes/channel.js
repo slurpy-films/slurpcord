@@ -1,4 +1,4 @@
-import sendMessage from "./messages/sendMessage.js";
+import sendMessage from "../messages/sendMessage.js";
 
 export default async function channel(data, token) {
     const response = await fetch(`https://discord.com/api/v10/channels/${data}`, {

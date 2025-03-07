@@ -1,4 +1,4 @@
-import sendDM from "./messages/sendDm.js";
+import sendDM from "../messages/sendDm.js";
 
 export default async function user(data, token) {
     const userdata = data;
