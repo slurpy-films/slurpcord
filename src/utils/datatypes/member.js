@@ -3,7 +3,7 @@ export default async function member(data, guildId, token) {
     const memberData = data;
 
     memberData.ban = async (reason, delmsgdays = 0) => {
-        const response = await fetch(`https://discord.com/api/v10/guilds/${guildId}/bans/${data.user.id}`, {
+        await fetch(`https://discord.com/api/v10/guilds/${guildId}/bans/${data.user.id}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bot ${token}`,

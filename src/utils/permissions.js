@@ -14,7 +14,6 @@ const permissionFlags = {
 
 export async function getUserPermissions(token, userId, guildId) {
     try {
-        // Hent brukerens medlemsdata
         const memberResponse = await fetch(`https://discord.com/api/v10/guilds/${guildId}/members/${userId}`, {
             method: 'GET',
             headers: {
@@ -30,7 +29,6 @@ export async function getUserPermissions(token, userId, guildId) {
 
         const memberData = await memberResponse.json();
 
-        // Hent alle rollene i guilden
         const rolesResponse = await fetch(`https://discord.com/api/v10/guilds/${guildId}/roles`, {
             method: 'GET',
             headers: {
@@ -46,7 +44,6 @@ export async function getUserPermissions(token, userId, guildId) {
 
         const roles = await rolesResponse.json();
 
-        // Finn rollene som brukeren har
         const userRoles = memberData.roles;
         const userPermissions = new Set();
 

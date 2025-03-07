@@ -4,7 +4,7 @@ import  Embed  from "./builders/embed.js";
 
 import { ActivityTypes, ButtonTypes } from "./types/index.js";
 
-import RegisterCommands from "./slashCommands.js";
+import RegisterCommands from "./interactions/registerCommands.js";
 
 import SlashCommand from "./builders/slashcommand.js";
 

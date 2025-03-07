@@ -1,7 +1,6 @@
-import sendMessage from './utils/messages/sendMessage.js';
-import registerCommands from './slashCommands.js';
+import { sendMessage } from "./utils/messages/index.js";
 import { getCachedChannel, getCachedGuild, getCachedMember, getCachedUser } from './cache.js';
-import { commandInteraction, buttonInteraction } from './interactions/index.js';
+import { commandInteraction, buttonInteraction, RegisterCommands } from './interactions/index.js';
 let sequence = null;
 
 export default class Bot {
@@ -30,7 +29,7 @@ export default class Bot {
     }
 
     async setCommands(commands) {
-        await registerCommands(this.token, this.user.id, commands);
+        await RegisterCommands(this.token, this.user.id, commands);
     }
 
     setPrefix(prefix) {
@@ -43,7 +42,7 @@ export default class Bot {
 
     setActivity(name, type = 0) {
         this.activity = { name, type };
-        if (this.ws && this.connected) { // Sjekk om vi er ferdige med HELLO
+        if (this.ws && this.connected) {
             this.ws.send(JSON.stringify({
                 op: 3,
                 d: {

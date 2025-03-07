@@ -2,4 +2,6 @@ import commandInteraction from "./command.js";
 
 import buttonInteraction from "./button.js";
 
-export { commandInteraction, buttonInteraction };
+import RegisterCommands from "./registerCommands.js";
+
+export { commandInteraction, buttonInteraction, RegisterCommands };
