@@ -1,27 +1,61 @@
 import { sendMessage } from "./utils/messages/index.js";
-import { getCachedChannel, getCachedGuild, getCachedMember, getCachedUser } from './cache.js';
+import { getCachedChannel, getCachedGuild, getCachedMember, getCachedUser, userIsIsCache } from './cache.js';
 import { commandInteraction, buttonInteraction, RegisterCommands } from './interactions/index.js';
+import { guild, user } from "./utils/index.js";
+
 let sequence = null;
 
 export default class Bot {
+    #commands = new Map();
+    #slashCmds = new Map();
+    #buttons = [];
+    #guilds = new Map();
+
     constructor(token, prefix = "") {
         this.token = token;
         this.prefix = prefix;
         this.baseUrl = "https://discord.com/api/v10";
-        this.commands = new Map();
-        this.slashCmds = new Map();
-        this.buttons = [];
         this.activity = null;
         this.connected = false;
-        this.guilds = [];
     }
 
     command(name, action) {
-        this.commands.set(name, action);
+        this.#commands.set(name, action);
     }
 
     slashCommand(name, action) {
-        this.slashCmds.set(name, action);
+        this.#slashCmds.set(name, action);
+    }
+
+    guilds = {
+        fetch: async (id) => {
+            return this.#guilds.get(id);
+        }
+    }
+
+    users = {
+        fetch: async (id) => {
+            if (userIsIsCache(id)) {
+                return await getCachedUser({ id }, this.token);
+            } else {
+                const response = await fetch(`${this.baseUrl}/users/${id}`, {
+                    method: 'GET',
+                    headers: {
+                        Authorization: `Bot ${this.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                const data = await response.json();
+                getCachedUser(data, this.token);
+                return await user(data, this.token);
+            }
+        }
+    }
+
+    channels = {
+        fetch: async (id) => {
+            return await getCachedChannel(id, this.token);
+        }
     }
 
     ready(action) {
@@ -37,7 +71,7 @@ export default class Bot {
     }
 
     button(action) {
-        this.buttons.push(action);
+        this.#buttons.push(action);
     }
 
     setActivity(name, type = 0) {
@@ -59,7 +93,6 @@ export default class Bot {
         const WebSocket = await import('ws');
         this.ws = new WebSocket.WebSocket('wss://gateway.discord.gg/?v=10&encoding=json');
 
-
         this.ws.on('close', (code, reason) => {
             console.log(`WebSocket closed: ${code} - ${reason}`);
             clearInterval(this.heartbeat);
@@ -70,15 +103,13 @@ export default class Bot {
             this.ws.close();
         });
 
-        
-
         this.ws.on('message', async (data) => {
             const payload = JSON.parse(data);
             const { op, t: event, s, d: messageData } = payload;
 
             if (s) sequence = s;
 
-            if (op === 10) { // HELLO-event
+            if (op === 10) {
                 const heartbeatInterval = messageData.heartbeat_interval;
 
                 const sendHeartbeat = () => {
@@ -116,7 +147,7 @@ export default class Bot {
                 let message = messageData;
                 if (message.content.startsWith(this.prefix)) {
                     const [cmd, ...args] = message.content.slice(this.prefix.length).split(/\s+/);
-                    const command = this.commands.get(cmd);
+                    const command = this.#commands.get(cmd);
                     const input = message.content.split(this.prefix + cmd + "")[1];
 
                     const [guild, userdata, channelData] = await Promise.all([
@@ -143,10 +174,14 @@ export default class Bot {
                             'Content-Type': 'application/json'
                         }
                     });
-            
+
                     const guilddata = await response.json();
-            
-                    this.guilds = guilddata;
+
+                    for (let data of guilddata) {
+                        const formattedguild = guild(data, this.token);
+                        this.#guilds.set(data.id, formattedguild);
+                    }
+
                     this.user = messageData.user;
                     this.user.tag = messageData.user.username + "#" + messageData.user.discriminator;
                     this.ready();
@@ -155,32 +190,30 @@ export default class Bot {
                 let interaction = messageData;
 
                 if (interaction.type === 2) {
-                interaction = commandInteraction(interaction);
+                    interaction = commandInteraction(interaction);
 
-                const commandfunc = this.slashCmds.get(interaction.data.name);
-                interaction.options = {};
-                if (interaction.data.options) {
-                    for (let option of interaction.data.options) {
-                        interaction.options[option.name] = option.value;
+                    const commandfunc = this.#slashCmds.get(interaction.data.name);
+                    interaction.options = {};
+                    if (interaction.data.options) {
+                        for (let option of interaction.data.options) {
+                            interaction.options[option.name] = option.value;
+                        }
                     }
-                }
-                const [channel, userdata, guild, member] = await Promise.all([
-                    getCachedChannel(interaction.channel_id, this.token),
-                    getCachedUser(interaction.member.user, this.token),
-                    getCachedGuild(interaction.guild_id, this.token),
-                    getCachedMember(interaction.guild_id, interaction.member, this.token)
-                ]);
+                    const [channel, userdata, guild, member] = await Promise.all([
+                        getCachedChannel(interaction.channel_id, this.token),
+                        getCachedUser(interaction.member.user, this.token),
+                        getCachedGuild(interaction.guild_id, this.token),
+                        getCachedMember(interaction.guild_id, interaction.member, this.token)
+                    ]);
 
-                interaction.user = userdata;
-                interaction.channel = channel;
-                interaction.guild = guild;
-                interaction.member = member;
+                    interaction.user = userdata;
+                    interaction.channel = channel;
+                    interaction.guild = guild;
+                    interaction.member = member;
 
-
-
-                if (commandfunc) {
-                    commandfunc(interaction);
-                }
+                    if (commandfunc) {
+                        commandfunc(interaction);
+                    }
                 } else if (interaction.type === 3) {
                     interaction = buttonInteraction(interaction);
 
@@ -196,12 +229,10 @@ export default class Bot {
                     interaction.member = member;
                     interaction.channel = channel;
 
-                    this.buttons.forEach(func => {
+                    this.#buttons.forEach(func => {
                         func(interaction);
                     });
                 }
-                
-
             }
         });
     }

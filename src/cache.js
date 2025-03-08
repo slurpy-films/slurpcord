@@ -60,3 +60,7 @@ export async function addMemberToCache(data, token, guildId) {
     if (cache.members.has(memberkey)) return;
     cache.members.set(memberkey, await member(data, guildId, token));
 }
+
+export function userIsIsCache(userId) {
+    return cache.users.has(userId);
+}
