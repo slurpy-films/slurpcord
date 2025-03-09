@@ -1,7 +1,6 @@
-import { sendMessage } from "./utils/messages/index.js";
-import { getCachedChannel, getCachedGuild, getCachedMember, getCachedUser, userIsIsCache } from './cache.js';
+import { addMemberToCache, getCachedChannel, getCachedGuild, getCachedMember, getCachedUser, userIsIsCache } from './cache.js';
 import { commandInteraction, buttonInteraction, RegisterCommands } from './interactions/index.js';
-import { guild, user } from "./utils/index.js";
+import { guild, user, message as messageType } from "./utils/index.js";
 
 let sequence = null;
 
@@ -10,6 +9,7 @@ export default class Bot {
     #slashCmds = new Map();
     #buttons = [];
     #guilds = new Map();
+    #events = new Map();
 
     constructor(token, prefix = "") {
         this.token = token;
@@ -25,6 +25,16 @@ export default class Bot {
 
     slashCommand(name, action) {
         this.#slashCmds.set(name, action);
+    }
+
+    event(event, action) {
+        const events = this.#events.get(event);
+        if (!events) {
+            this.#events.set(event, [action]);
+            return;
+        }
+        events.push(action);
+        this.#events.set(event, events);
     }
 
     guilds = {
@@ -106,7 +116,6 @@ export default class Bot {
         this.ws.on('message', async (data) => {
             const payload = JSON.parse(data);
             const { op, t: event, s, d: messageData } = payload;
-
             if (s) sequence = s;
 
             if (op === 10) {
@@ -126,7 +135,7 @@ export default class Bot {
                     op: 2,
                     d: {
                         token: this.token,
-                        intents: 513 | 32768 | 8,
+                        intents: 513 | 32768 | 8 | 16 | 2,
                         properties: {
                             os: 'linux',
                             browser: 'bot',
@@ -142,28 +151,42 @@ export default class Bot {
 
                 this.connected = true;
             }
+        
 
             if (event === 'MESSAGE_CREATE') {
                 let message = messageData;
+                message = await messageType(message, this.token);
                 if (message.content.startsWith(this.prefix)) {
                     const [cmd, ...args] = message.content.slice(this.prefix.length).split(/\s+/);
                     const command = this.#commands.get(cmd);
                     const input = message.content.split(this.prefix + cmd + "")[1];
-
                     const [guild, userdata, channelData] = await Promise.all([
                         message.guild_id ? getCachedGuild(message.guild_id, this.token) : null,
                         getCachedUser(message.author, this.token),
                         getCachedChannel(message.channel_id, this.token),
                     ]);
+
+                    message.guild = guild;
+                    message.user = userdata;
+                    message.channel = channelData;
+
                     if (command) {
-                        command({
-                            reply: (content) => sendMessage(message.channel_id, content, this.token, message.id),
-                            message,
-                            user: userdata,
-                            channel: channelData,
-                            guild: guild ? guild : undefined,
-                        }, input);
+                        command(message, input);
                     }
+                }
+                if (this.#events.has(event)) {
+                    const [guild, userdata, channelData] = await Promise.all([
+                        message.guild_id ? getCachedGuild(message.guild_id, this.token) : null,
+                        getCachedUser(message.author, this.token),
+                        getCachedChannel(message.channel_id, this.token),
+                    ]);
+
+                    message.guild = guild;
+                    message.user = userdata;
+                    message.channel = channelData;
+                    this.#events.get(event).forEach(func => {
+                        func(message);
+                    })
                 }
             } else if (event === "READY") {
                 if (this.ready) {
@@ -189,6 +212,9 @@ export default class Bot {
             } else if (event === "INTERACTION_CREATE") {
                 let interaction = messageData;
 
+                interaction.isCommand = interaction.type === 2;
+                interaction.isButton = interaction.type === 3;
+
                 if (interaction.type === 2) {
                     interaction = commandInteraction(interaction);
 
@@ -201,9 +227,9 @@ export default class Bot {
                     }
                     const [channel, userdata, guild, member] = await Promise.all([
                         getCachedChannel(interaction.channel_id, this.token),
-                        getCachedUser(interaction.member.user, this.token),
-                        getCachedGuild(interaction.guild_id, this.token),
-                        getCachedMember(interaction.guild_id, interaction.member, this.token)
+                        getCachedUser(interaction.user, this.token),
+                        interaction.guild_id ? getCachedGuild(interaction.guild_id, this.token) : null,
+                        getCachedMember(interaction.guild_id, interaction.user, this.token)
                     ]);
 
                     interaction.user = userdata;
@@ -214,6 +240,10 @@ export default class Bot {
                     if (commandfunc) {
                         commandfunc(interaction);
                     }
+
+                    this.#events.get(event).forEach(func => {
+                        func(interaction);
+                    })
                 } else if (interaction.type === 3) {
                     interaction = buttonInteraction(interaction);
 
@@ -232,6 +262,45 @@ export default class Bot {
                     this.#buttons.forEach(func => {
                         func(interaction);
                     });
+
+                    this.#events.get(event).forEach(func => {
+                        func(interaction);
+                    })
+                }
+            } else if (event === "GUILD_MEMBER_ADD") {
+                let member = messageData;
+                
+                const [guild, user] = await Promise.all([
+                    getCachedGuild(messageData.guild_id, this.token),
+                    getCachedUser(messageData.user, this.token)
+                ]);
+
+                member.guild = guild;
+                member.user = user;
+
+                const events = this.#events.get(event);
+                if (events) {
+                    events.forEach(func => {
+                        func(member);
+                    })
+                }
+            } else if (event === "GUILD_MEMBER_REMOVE") {
+                let member = messageData;
+                
+                    const [guild, user] = await Promise.all([
+                    getCachedGuild(member.guild_id, this.token),
+                    getCachedUser(member.user, this.token),
+                ]);
+                
+                member.guild = guild; 
+                member.user = user;
+
+                const events = this.#events.get(event);
+
+                if (events) {
+                    events.forEach(func => {
+                        func(member);
+                    })
                 }
             }
         });

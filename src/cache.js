@@ -4,7 +4,8 @@ const cache = {
     guilds: new Map(),
     channels: new Map(),
     users: new Map(),
-    members: new Map()
+    members: new Map(),
+    userChannels: new Map()
 };
 
 export async function getCachedGuild(guildId, token) {
@@ -63,4 +64,15 @@ export async function addMemberToCache(data, token, guildId) {
 
 export function userIsIsCache(userId) {
     return cache.users.has(userId);
+}
+
+export function getDMchannel(userId) {
+    if (cache.userChannels.has(userId)) {
+        return cache.userChannels.get(userId);
+    }
+    return null;
+}
+
+export function addDMchannel(userId, dmchannel) {
+    cache.userChannels.set(userId, dmchannel);
 }

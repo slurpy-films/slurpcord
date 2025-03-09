@@ -6,4 +6,6 @@ import guild from "./guild.js";
 
 import channel from "./channel.js";
 
-export { member, user, guild, channel };
+import message from "./message.js";
+
+export { member, user, guild, channel, message };

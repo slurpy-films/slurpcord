@@ -1,6 +1,6 @@
 export default function commandInteraction(data) {
     const cmddata = data;
-
+    cmddata.commandName = cmddata.data.name;
     cmddata.options = {};
     if (cmddata.data.options) {
         for (let option of cmddata.data.options) {
