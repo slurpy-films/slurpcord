@@ -6,18 +6,17 @@ const queue = [];
 export default async function sendDM(id, token, content) {
     queue.push({ content, id });
     if (!queuerunning) {
-        queuerunning = true; // Start køprosessen
-        await dmQueue(token); // Vent til køprosessen er ferdig
-        queuerunning = false; // Når prosessen er ferdig, tillat neste
+        queuerunning = true;
+        await dmQueue(token);
+        queuerunning = false;
     }
 }
 
 async function dmQueue(token) {
-    while (queue.length > 0) { // Fortsett så lenge det er elementer i køen
-        const item = queue.shift(); // Fjerner første element i køen
+    while (queue.length > 0) {
+        const item = queue.shift();
         const { content, id } = item;
 
-        // Hent eksisterende DM-kanal fra cache
         const cachedChannel = getDMchannel(id);
 
         if (cachedChannel) {
@@ -25,7 +24,7 @@ async function dmQueue(token) {
         } else {
             const channel = await createDMChannel(token, id);
             await sendMessageToChannel(token, channel.id, content);
-            addDMchannel(id, channel); // Cache kanalen
+            addDMchannel(id, channel);
         }
     }
 }
