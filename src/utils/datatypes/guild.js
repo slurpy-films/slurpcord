@@ -1,6 +1,6 @@
 import member from "./member.js";
 import channel from "./channel.js";
-import { memberIsIsCache, getCachedMember, addMemberToCache } from "../../cache.js";
+import { memberIsIsCache, getCachedMember, addMemberToCache } from "../../cache/index.js";
 
 export default async function guild(data, token) {
     const guildData = data;

@@ -1,4 +1,4 @@
-import { getDMchannel, addDMchannel } from "../../cache.js";
+import { getDMchannel, addDMchannel } from "../../cache/index.js";
 
 let queuerunning = false;
 const queue = [];

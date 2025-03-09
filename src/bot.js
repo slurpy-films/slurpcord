@@ -1,4 +1,4 @@
-import { addMemberToCache, getCachedChannel, getCachedGuild, getCachedMember, getCachedUser, userIsIsCache } from './cache.js';
+import { addMemberToCache, getCachedChannel, getCachedGuild, getCachedMember, getCachedUser, userIsIsCache } from './cache/index.js';
 import { commandInteraction, buttonInteraction, RegisterCommands } from './interactions/index.js';
 import { guild, user, message as messageType } from "./utils/index.js";
 
@@ -10,13 +10,14 @@ export default class Bot {
     #buttons = [];
     #guilds = new Map();
     #events = new Map();
-
+    #connected = false;
+    
+    
     constructor(token, prefix = "") {
         this.token = token;
         this.prefix = prefix;
-        this.baseUrl = "https://discord.com/api/v10";
         this.activity = null;
-        this.connected = false;
+        this.#connected = false;
     }
 
     command(name, action) {
@@ -48,7 +49,7 @@ export default class Bot {
             if (userIsIsCache(id)) {
                 return await getCachedUser({ id }, this.token);
             } else {
-                const response = await fetch(`${this.baseUrl}/users/${id}`, {
+                const response = await fetch(`https://discord.com/api/v1/users/${id}`, {
                     method: 'GET',
                     headers: {
                         Authorization: `Bot ${this.token}`,
@@ -86,7 +87,7 @@ export default class Bot {
 
     setActivity(name, type = 0) {
         this.activity = { name, type };
-        if (this.ws && this.connected) {
+        if (this.ws && this.#connected) {
             this.ws.send(JSON.stringify({
                 op: 3,
                 d: {
@@ -149,7 +150,7 @@ export default class Bot {
                     }
                 }));
 
-                this.connected = true;
+                this.#connected = true;
             }
         
 
@@ -227,9 +228,9 @@ export default class Bot {
                     }
                     const [channel, userdata, guild, member] = await Promise.all([
                         getCachedChannel(interaction.channel_id, this.token),
-                        getCachedUser(interaction.user, this.token),
+                        getCachedUser(interaction.guild_id ? interaction.member.user : interaction.user, this.token),
                         interaction.guild_id ? getCachedGuild(interaction.guild_id, this.token) : null,
-                        getCachedMember(interaction.guild_id, interaction.user, this.token)
+                        getCachedMember(interaction.guild_id, interaction.guild_id ? interaction.member.user : interaction.user, this.token)
                     ]);
 
                     interaction.user = userdata;
@@ -240,10 +241,11 @@ export default class Bot {
                     if (commandfunc) {
                         commandfunc(interaction);
                     }
-
-                    this.#events.get(event).forEach(func => {
-                        func(interaction);
-                    })
+                    if (this.#events.has(event)) {
+                        this.#events.get(event).forEach(func => {
+                            func(interaction);
+                        })
+                    }
                 } else if (interaction.type === 3) {
                     interaction = buttonInteraction(interaction);
 
