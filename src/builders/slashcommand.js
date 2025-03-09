@@ -34,6 +34,15 @@ export default class SlashCommand {
         return this;
     }
 
+    addSubcommand(name, builder) {
+        const subcommand = new SlashCommandOption();
+        subcommand.setType(1);
+        subcommand.setName(name);
+        builder(subcommand);
+        this.options.push(subcommand.toJSON());
+        return this;
+    }
+
     toJSON() {
         return {
             name: this.name,
@@ -49,9 +58,10 @@ class SlashCommandOption {
     constructor() {
         this.name = '';
         this.description = '';
-        this.type = 3; // Default STRING
+        this.type = 3;
         this.required = false;
         this.choices = [];
+        this.options = [];
     }
 
     setName(name) {
@@ -79,13 +89,23 @@ class SlashCommandOption {
         return this;
     }
 
+    addSubcommand(name, builder) {
+        const subcommand = new SlashCommandOption();
+        subcommand.setType(1);
+        subcommand.setName(name);
+        builder(subcommand);
+        this.options.push(subcommand.toJSON());
+        return this;
+    }
+
     toJSON() {
         return {
             name: this.name,
             description: this.description,
             type: this.type,
             required: this.required,
-            choices: this.choices
+            choices: this.choices,
+            options: this.options
         };
     }
 }

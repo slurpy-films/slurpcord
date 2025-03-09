@@ -39,24 +39,30 @@ export default async function guild(data, token) {
         fetch: async (channelId) => {
             return await channel(channelId, token);
         },
-        create: async (name, type = 0) => {
+        create: async (name, type = 0, parentId) => {
+            const body = {
+                name: name,
+                type: type,
+            };
+        
+            if (parentId) {
+                body.parent_id = parentId;
+            }
+        
             const response = await fetch(`https://discord.com/api/v10/guilds/${data.id}/channels`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bot ${token}`,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    name: name,
-                    type: type
-                })
+                body: JSON.stringify(body),
             });
-
+        
             if (!response.ok) {
                 console.error('Failed to create channel:', await response.json());
                 return null;
             }
-
+        
             const channelData = await response.json();
             return await channel(channelData.id, token);
         },

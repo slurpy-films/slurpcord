@@ -1,3 +1,5 @@
+import { message } from "../datatypes/index.js";
+
 export default async function sendMessage(channelId, content, token, messageId = null, ) {
     let body;
     if (typeof(content) === "string") {
@@ -23,6 +25,10 @@ export default async function sendMessage(channelId, content, token, messageId =
     });
 
     if (!response.ok) {
-        console.error('Failed to send message:', await response.json());
+        throw new Error('Failed to send message:', await response.json());
     }
+
+    let messagedata = await response.json();
+    messagedata = await message(messagedata, token);
+    return messagedata;
 }

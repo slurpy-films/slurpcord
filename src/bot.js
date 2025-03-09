@@ -12,7 +12,7 @@ export default class Bot {
     #events = new Map();
     #connected = false;
     
-    
+
     constructor(token, prefix = "") {
         this.token = token;
         this.prefix = prefix;
@@ -182,6 +182,7 @@ export default class Bot {
                         getCachedChannel(message.channel_id, this.token),
                     ]);
 
+
                     message.guild = guild;
                     message.user = userdata;
                     message.channel = channelData;
@@ -277,31 +278,25 @@ export default class Bot {
                     getCachedUser(messageData.user, this.token)
                 ]);
 
-                member.guild = guild;
-                member.user = user;
-
                 const events = this.#events.get(event);
                 if (events) {
                     events.forEach(func => {
-                        func(member);
+                        func(user, guild);
                     })
                 }
             } else if (event === "GUILD_MEMBER_REMOVE") {
                 let member = messageData;
                 
-                    const [guild, user] = await Promise.all([
+                const [guild, user] = await Promise.all([
                     getCachedGuild(member.guild_id, this.token),
                     getCachedUser(member.user, this.token),
                 ]);
-                
-                member.guild = guild; 
-                member.user = user;
 
                 const events = this.#events.get(event);
 
                 if (events) {
                     events.forEach(func => {
-                        func(member);
+                        func(user, guild);
                     })
                 }
             }
