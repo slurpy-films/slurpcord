@@ -8,21 +8,26 @@ export default class Channel {
 
     setName(name) {
         this.name = name;
+        return this;
     }
 
     setType(type) {
         this.type = type;
+        return this;
     }
 
     setParentId(id) {
         this.parentId = id;
+        return this;
     }
 
     addPermissionOverwrite(overwrite) {
         this.permissionOverwrites.push(overwrite);
+        return this;
     }
 
     removePermissionOverwrite(id) {
         this.permissionOverwrites = this.permissionOverwrites.filter(overwrite => overwrite.id !== id);
+        return this;
     }
 }

@@ -8,4 +8,6 @@ import channel from "./channel.js";
 
 import message from "./message.js";
 
-export { member, user, guild, channel, message };
+import role from "./role.js";
+
+export { member, user, guild, channel, message, role };

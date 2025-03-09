@@ -1,5 +1,6 @@
 import member from "./member.js";
 import channelType from "./channel.js";
+import roleType from "./role.js";
 import { memberIsIsCache, getCachedMember, addMemberToCache } from "../../cache/index.js";
 
 export default async function guild(data, token) {
@@ -7,7 +8,7 @@ export default async function guild(data, token) {
 
     guildData.members = {
         fetch: async (userId) => {
-            if (!userId) return null;
+            if (!userId) throw new Error('User ID is required');
 
             if (memberIsIsCache(userId, data.id)) {
                 return await getCachedMember(data.id, { id: userId }, token);
@@ -21,13 +22,12 @@ export default async function guild(data, token) {
             });
 
             if (!response.ok) {
-                return null;
+                throw new Error(`Failed to fetch member: ${await response.text()}`);
             }
 
             const memberData = await response.json();
 
             const memberWithPermissions = await member(memberData, data.id, token);
-
 
             addMemberToCache(memberData, token, data.id);
 
@@ -46,7 +46,7 @@ export default async function guild(data, token) {
                 name: name,
                 type: type,
             };
-        
+
             if (parentId) {
                 body.parent_id = parentId;
             }
@@ -54,7 +54,7 @@ export default async function guild(data, token) {
             if (permissionOverwrites && permissionOverwrites.length > 0) {
                 body.permission_overwrites = permissionOverwrites;
             }
-        
+
             const response = await fetch(`https://discord.com/api/v10/guilds/${data.id}/channels`, {
                 method: 'POST',
                 headers: {
@@ -63,12 +63,11 @@ export default async function guild(data, token) {
                 },
                 body: JSON.stringify(body),
             });
-        
+
             if (!response.ok) {
-                console.error('Failed to create channel:', await response.json());
-                return null;
+                throw new Error(`Failed to create channel: ${await response.text()}`);
             }
-        
+
             const channelData = await response.json();
             return await channelType(channelData.id, token);
         },
@@ -81,8 +80,79 @@ export default async function guild(data, token) {
             });
 
             if (!response.ok) {
-                console.error('Failed to delete channel:', await response.json());
-                return null;
+                throw new Error(`Failed to delete channel: ${await response.text()}`);
+            }
+
+            return true;
+        }
+    };
+
+    guildData.roles = {
+        fetch: async (roleId) => {
+            const response = await fetch(`https://discord.com/api/v10/guilds/${data.id}/roles`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bot ${token}`
+                }
+            });
+        
+            if (!response.ok) {
+                throw new Error(`Failed to fetch roles: ${await response.text()}`);
+            }
+        
+            const rolesData = await response.json();
+        
+            // Hvis spesifikk rolle-ID er sendt, returner den rolleobjektet
+            if (roleId) {
+                const role = rolesData.find(role => role.id === roleId);
+                if (role) {
+                    return await roleType(role, token, data.id);
+                } else {
+                    throw new Error(`Role with ID ${roleId} not found.`);
+                }
+            }
+        
+            // Returner alle roller etter at de er behandlet
+            const allRoles = await Promise.all(rolesData.map(async role => await roleType(role, token, data.id)));
+            return allRoles;
+        },        
+        create: async (role) => {
+            const { name, color, hoist, mentionable, permissions } = role;
+
+            const body = {
+                name: name,
+                color: color,
+                hoist: hoist,
+                mentionable: mentionable,
+                permissions: permissions
+            };
+
+            const response = await fetch(`https://discord.com/api/v10/guilds/${data.id}/roles`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bot ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to create role: ${await response.text()}`);
+            }
+
+            const roleData = await response.json();
+            return await roleType(roleData, token, data.id);
+        },
+        delete: async (roleId) => {
+            const response = await fetch(`https://discord.com/api/v10/guilds/${data.id}/roles/${roleId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bot ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to delete role: ${await response.text()}`);
             }
 
             return true;

@@ -21,5 +21,20 @@ export default async function channel(data, token) {
         await sendMessage(data.id, content, token);
     }
 
+    channelData.messages = {
+        fetch: async (id) => {
+            const response = await fetch(`https://discord.com/api/v10/channels/${data.id}/messages${id ? `/${id}` : ''}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bot ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch messages:', await response.json());
+            }
+        }
+    }
+
     return channelData;
 }

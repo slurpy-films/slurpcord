@@ -8,4 +8,6 @@ import SlashCommand from "./slashcommand.js";
 
 import Channel from "./channel.js";
 
-export { Embed, Button, ActionRow, SlashCommand, Channel };
+import Role from "./role.js";
+
+export { Embed, Button, ActionRow, SlashCommand, Channel, Role };

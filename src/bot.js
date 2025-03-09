@@ -40,7 +40,15 @@ export default class Bot {
 
     guilds = {
         fetch: async (id) => {
-            return this.#guilds.get(id);
+            if (id) {
+                const guild = this.#guilds.get(id);
+                if (guild) {
+                    return await guild;
+                }
+                return null;
+            } else {
+                return await Promise.all(Array.from(this.#guilds.values()));
+            }
         }
     }
 
@@ -160,12 +168,12 @@ export default class Bot {
                 if (message.content.startsWith(this.prefix)) {
                     const [cmd, ...args] = message.content.slice(this.prefix.length).split(/\s+/);
                     const command = this.#commands.get(cmd);
-                    const input = message.content.split(this.prefix + cmd + "")[1];
+                    const input = message.content.split(this.prefix + cmd + " ")[1];
                     const [guild, userdata, channelData] = await Promise.all([
                         message.guild_id ? getCachedGuild(message.guild_id, this.token) : null,
                         getCachedUser(message.author, this.token),
                         getCachedChannel(message.channel_id, this.token),
-                    ]);
+                    ]); 
 
                     message.guild = guild;
                     message.user = userdata;
