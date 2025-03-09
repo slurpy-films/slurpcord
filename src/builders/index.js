@@ -6,4 +6,6 @@ import ActionRow from "./actionrow.js";
 
 import SlashCommand from "./slashcommand.js";
 
-export { Embed, Button, ActionRow, SlashCommand };
+import Channel from "./channel.js";
+
+export { Embed, Button, ActionRow, SlashCommand, Channel };
