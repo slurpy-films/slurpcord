@@ -3,7 +3,6 @@ import { user } from "../utils/index.js";
 const cache = new Map();
 
 export async function getCachedUser(data, token) {
-    console.log(data);
     if (cache.has(data.id)) {
         return cache.get(data.id);
     }
