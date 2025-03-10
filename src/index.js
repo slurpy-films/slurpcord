@@ -1,14 +1,28 @@
-import  Bot  from "./bot.js";
+/**
+ * @typedef {import("./bot.js").Bot} Bot
+ * @typedef {import("./types/index.js").ActivityTypes} ActivityTypes
+ * @typedef {import("./types/index.js").ButtonTypes} ButtonTypes
+ * @typedef {import("./types/index.js").Events} Events
+ * @typedef {import("./types/index.js").ChannelTypes} ChannelTypes
+ * @typedef {import("./types/index.js").SlashCommandOptions} SlashCommandOptions
+ * @typedef {import("./types/index.js").ChannelPermissions} ChannelPermissions
+ * @typedef {import("./builders/index.js").Button} Button
+ * @typedef {import("./builders/index.js").ActionRow} ActionRow
+ * @typedef {import("./builders/index.js").SlashCommand} SlashCommand
+ * @typedef {import("./builders/index.js").Embed} Embed
+ * @typedef {import("./builders/index.js").Channel} Channel
+ * @typedef {import("./builders/index.js").Role} Role
+ */
 
-import { 
+import Bot from "./bot.js";
+import {
     ActivityTypes, 
     ButtonTypes, 
     Events, 
     ChannelTypes, 
     SlashCommandOptions, 
-    ChannelPermissions 
+    ChannelPermissions
 } from "./types/index.js";
-
 import {
     Button,
     ActionRow, 
@@ -17,6 +31,12 @@ import {
     Channel,
     Role
 } from "./builders/index.js";
+
+/** @type {Embed} */
+const embed = new Embed("Title", "Description");
+
+/** @type {Bot} */
+const bot = new Bot("your-token");
 
 export { 
     Embed, 

@@ -1,19 +1,22 @@
 {
   "name": "slurpcord",
-  "version": "1.0.0",
+  "version": "1.0.2",
+  "description": "Simple API wrapper for Discord",
   "main": "src/index.js",
   "exports": "./src/index.js",
     "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "slurpy-films",
+  "license": "MIT",
   "type": "module",
-  "description": "",
   "dependencies": {
     "node-fetch": "^3.3.2",
-    "ws": "^8.18.1",
-    "slurpcord": "^0.0.1"
+    "ws": "^8.18.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/slurpy-films/slurpcord.git"
   }
 }

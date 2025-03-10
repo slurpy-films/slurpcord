@@ -176,7 +176,7 @@ export default class Bot {
                     ]); 
 
                     message.guild = guild;
-                    message.user = userdata;
+                    message.author = userdata;
                     message.channel = channelData;
 
                     if (command) {
@@ -192,7 +192,7 @@ export default class Bot {
 
 
                     message.guild = guild;
-                    message.user = userdata;
+                    message.author = userdata;
                     message.channel = channelData;
                     this.#events.get(event).forEach(func => {
                         func(message);
