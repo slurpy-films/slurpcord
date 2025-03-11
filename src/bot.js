@@ -4,6 +4,7 @@ import { guild, user, message as messageType } from "./utils/index.js";
 
 let sequence = null;
 
+
 export default class Bot {
     #commands = new Map();
     #slashCmds = new Map();

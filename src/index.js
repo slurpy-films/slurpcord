@@ -32,11 +32,7 @@ import {
     Role
 } from "./builders/index.js";
 
-/** @type {Embed} */
-const embed = new Embed("Title", "Description");
 
-/** @type {Bot} */
-const bot = new Bot("your-token");
 
 export { 
     Embed, 
