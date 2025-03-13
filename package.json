@@ -1,10 +1,10 @@
 {
   "name": "slurpcord",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Simple API wrapper for Discord",
   "main": "src/index.js",
   "exports": "./src/index.js",
-    "scripts": {
+  "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -12,6 +12,9 @@
   "license": "MIT",
   "type": "module",
   "dependencies": {
+    "axios": "^1.8.3",
+    "buffer": "^6.0.3",
+    "form-data": "^4.0.2",
     "node-fetch": "^3.3.2",
     "ws": "^8.18.1"
   },

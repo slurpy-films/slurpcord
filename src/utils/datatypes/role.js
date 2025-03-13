@@ -72,5 +72,7 @@ export default async function role(data, token, guildId) {
         return await roleData.edit({ mentionable });
     };
 
+    roleData.mention = `<@&${data.id}>`;
+
     return roleData;
 }

@@ -1,34 +1,41 @@
+import axios from 'axios';
+import FormData from 'form-data';
 import { message } from "../datatypes/index.js";
 
-export default async function sendMessage(channelId, content, token, messageId = null, ) {
-    let body;
-    if (typeof(content) === "string") {
-        body = { content };
-    } else {
-        body = content;
+export default async function sendMessage(channelId, content, token, messageId = null) {
+    const formData = new FormData();
+
+    formData.append('payload_json', JSON.stringify({
+        content: typeof content === "string" ? content : content.content,
+        embeds: content.embeds || [],
+        message_reference: messageId ? { message_id: messageId, channel_id: channelId } : undefined,
+    }));
+
+    if (content.attachments && content.attachments.length > 0) {
+        for (let i = 0; i < content.attachments.length; i++) {
+            const attachment = content.attachments[i];
+            if (attachment.file && Buffer.isBuffer(attachment.file)) {
+                formData.append(`files[${i}]`, attachment.file, attachment.filename);
+            }
+        }
     }
 
-    if (messageId) {
-        body.message_reference = {
-            message_id: messageId,
-            channel_id: channelId
-        };
+    try {
+        const response = await axios.post(
+            `https://discord.com/api/v10/channels/${channelId}/messages`,
+            formData,
+            {
+                headers: {
+                    'Authorization': `Bot ${token}`,
+                    ...formData.getHeaders(),
+                },
+            }
+        );
+
+        let messagedata = await message(response.data, token);
+        return messagedata;
+    } catch (error) {
+        console.error("Error sending message:", error.response ? error.response.data : error.message);
+        throw error;
     }
-
-    const response = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bot ${token}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-    });
-
-    if (!response.ok) {
-        throw new Error('Failed to send message:', await response.json());
-    }
-
-    let messagedata = await response.json();
-    messagedata = await message(messagedata, token);
-    return messagedata;
 }

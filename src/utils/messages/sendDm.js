@@ -1,4 +1,5 @@
 import { getDMchannel, addDMchannel } from "../../cache/index.js";
+import sendMessage from "./sendMessage.js";
 
 let queuerunning = false;
 const queue = [];
@@ -30,22 +31,7 @@ async function dmQueue(token) {
 }
 
 async function sendMessageToChannel(token, channelId, content) {
-    const response = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bot ${token}`
-        },
-        body: JSON.stringify(typeof(content) === "string" ? { content } : content )
-    });
-
-    const message = await response.json();
-
-    if (!response.ok) {
-        throw new Error(`Failed to send message: ${message.message}`);
-    }
-
-    return message;
+    return await sendMessage(channelId, content, token);
 }
 
 async function createDMChannel(token, id) {

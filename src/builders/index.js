@@ -10,4 +10,6 @@ import Channel from "./channel.js";
 
 import Role from "./role.js";
 
-export { Embed, Button, ActionRow, SlashCommand, Channel, Role };
+import Attachment from "./attachment.js";
+
+export { Embed, Button, ActionRow, SlashCommand, Channel, Role, Attachment };

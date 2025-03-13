@@ -23,13 +23,15 @@ import {
     SlashCommandOptions, 
     ChannelPermissions
 } from "./types/index.js";
+
 import {
     Button,
     ActionRow, 
     SlashCommand, 
     Embed, 
     Channel,
-    Role
+    Role,
+    Attachment
 } from "./builders/index.js";
 
 
@@ -47,5 +49,6 @@ export {
     SlashCommandOptions, 
     Channel,
     ChannelPermissions,
-    Role
+    Role,
+    Attachment
 };

@@ -12,5 +12,8 @@ export default async function user(data, token) {
         return `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png?size=${size}`;
     }
 
+    userdata.tag = `${data.username}#${data.discriminator}`;
+    userdata.mention = `<@${data.id}>`;
+
     return userdata;
 }
