@@ -13,3 +13,12 @@ export async function getCachedGuild(guildId, token) {
     cache.set(guildId, processedguild);
     return processedguild;
 }
+
+export async function addGuildToCache(id, data, token) {
+    const processedguild = await guild(data, token);
+    cache.set(id, processedguild);
+}
+
+export function getGuild(id) {
+    return id ? cache.get(id) : cache;
+}

@@ -102,7 +102,6 @@ export default async function guild(data, token) {
         
             const rolesData = await response.json();
         
-            // Hvis spesifikk rolle-ID er sendt, returner den rolleobjektet
             if (roleId) {
                 const role = rolesData.find(role => role.id === roleId);
                 if (role) {
@@ -112,7 +111,6 @@ export default async function guild(data, token) {
                 }
             }
         
-            // Returner alle roller etter at de er behandlet
             const allRoles = await Promise.all(rolesData.map(async role => await roleType(role, token, data.id)));
             return allRoles;
         },        

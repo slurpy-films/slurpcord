@@ -1,6 +1,7 @@
-import { addMemberToCache, getCachedChannel, getCachedGuild, getCachedMember, getCachedUser, userIsIsCache } from './cache/index.js';
+import { getCachedChannel, getCachedGuild, getCachedMember, getCachedUser, userIsIsCache, addGuildToCache, getGuild } from './cache/index.js';
 import { commandInteraction, buttonInteraction, RegisterCommands } from './interactions/index.js';
 import { guild, user, message as messageType } from "./utils/index.js";
+import axios from 'axios';
 
 let sequence = null;
 
@@ -42,14 +43,17 @@ export default class Bot {
     guilds = {
         fetch: async (id) => {
             if (id) {
-                const guild = this.#guilds.get(id);
+                const guild = getGuild(id);
                 if (guild) {
-                    return await guild;
+                    return guild;
                 }
                 return null;
             } else {
-                return await Promise.all(Array.from(this.#guilds.values()));
+                return Array.from(getGuild());
             }
+        },
+        length: () => {
+            return Array.from(getGuild()).length;
         }
     }
 
@@ -201,20 +205,17 @@ export default class Bot {
                 }
             } else if (event === "READY") {
                 if (this.ready) {
-                    const response = await fetch('https://discord.com/api/v10/users/@me/guilds', {
-                        method: 'GET',
+                    const response = await axios.get("https://discord.com/api/v10/users/@me/guilds", {
                         headers: {
-                            'Authorization': `Bot ${this.token}`,
-                            'Content-Type': 'application/json'
+                            "Authorization": `Bot ${this.token}`
                         }
                     });
 
-                    const guilddata = await response.json();
-
-                    for (let data of guilddata) {
-                        const formattedguild = guild(data, this.token);
-                        this.#guilds.set(data.id, formattedguild);
-                    }
+                    if (Array.isArray(response.data)) {
+                        for (let guild of response.data) {
+                            await addGuildToCache(guild.id, guild, this.token);
+                        }
+                    } else console.error("Error fetching guilds:", response);
 
                     this.user = messageData.user;
                     this.user.tag = messageData.user.username + "#" + messageData.user.discriminator;
@@ -308,7 +309,9 @@ export default class Bot {
                         func(user, guild);
                     })
                 }
-            }
-        });
+            } else if (event === "GUILD_CREATE") {
+                let guild = messageData;
+                await addGuildToCache(guild.id, guild, this.token);
+        }});
     }
 }
