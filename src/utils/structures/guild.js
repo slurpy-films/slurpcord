@@ -2,6 +2,7 @@ import member from "./member.js";
 import channelType from "./channel.js";
 import roleType from "./role.js";
 import { memberIsIsCache, getCachedMember, addMemberToCache } from "../../cache/index.js";
+import SlurpcordError from "../../errors/index.js";
 
 export default async function guild(data, token) {
     const guildData = data;
@@ -22,7 +23,7 @@ export default async function guild(data, token) {
             });
 
             if (!response.ok) {
-                throw new Error(`Failed to fetch member: ${await response.text()}`);
+                throw new SlurpcordError(`Failed to fetch member: ${await response.text()}`);
             }
 
             const memberData = await response.json();
@@ -65,7 +66,7 @@ export default async function guild(data, token) {
             });
 
             if (!response.ok) {
-                throw new Error(`Failed to create channel: ${await response.text()}`);
+                throw new SlurpcordError(`Failed to create channel: ${await response.text()}`);
             }
 
             const channelData = await response.json();
@@ -80,7 +81,7 @@ export default async function guild(data, token) {
             });
 
             if (!response.ok) {
-                throw new Error(`Failed to delete channel: ${await response.text()}`);
+                throw new SlurpcordError(`Failed to delete channel: ${await response.text()}`);
             }
 
             return true;
@@ -97,7 +98,7 @@ export default async function guild(data, token) {
             });
         
             if (!response.ok) {
-                throw new Error(`Failed to fetch roles: ${await response.text()}`);
+                throw new SlurpcordError(`Failed to fetch roles: ${await response.text()}`);
             }
         
             const rolesData = await response.json();
@@ -107,7 +108,7 @@ export default async function guild(data, token) {
                 if (role) {
                     return await roleType(role, token, data.id);
                 } else {
-                    throw new Error(`Role with ID ${roleId} not found.`);
+                    throw new SlurpcordError(`Role with ID ${roleId} not found.`);
                 }
             }
         
@@ -135,7 +136,7 @@ export default async function guild(data, token) {
             });
 
             if (!response.ok) {
-                throw new Error(`Failed to create role: ${await response.text()}`);
+                throw new SlurpcordError(`Failed to create role: ${await response.text()}`);
             }
 
             const roleData = await response.json();
@@ -150,7 +151,7 @@ export default async function guild(data, token) {
             });
 
             if (!response.ok) {
-                throw new Error(`Failed to delete role: ${await response.text()}`);
+                throw new SlurpcordError(`Failed to delete role: ${await response.text()}`);
             }
 
             return true;

@@ -1,4 +1,5 @@
 import { getDMchannel, addDMchannel } from "../../cache/index.js";
+import SlurpcordError from "../../errors/index.js";
 import sendMessage from "./sendMessage.js";
 
 let queuerunning = false;
@@ -47,7 +48,7 @@ async function createDMChannel(token, id) {
     const channel = await response.json();
 
     if (!response.ok) {
-        throw new Error(`Failed to open DM: ${channel.message}`);
+        throw new SlurpcordError(`Failed to open DM: ${channel.message}`);
     }
 
     return channel;

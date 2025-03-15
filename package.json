@@ -1,13 +1,13 @@
 {
   "name": "slurpcord",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Simple API wrapper for Discord",
   "main": "src/index.js",
   "exports": "./src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["Discord", "API wrapper", "Simple"],
   "author": "slurpy-films",
   "license": "MIT",
   "type": "module",

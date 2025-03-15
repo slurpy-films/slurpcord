@@ -1,3 +1,5 @@
+import SlurpcordError from "../../errors/index.js";
+
 export default async function editMessage(channelId, content, token, messageId ) {
     let body;
     if (typeof(content) === "string") {
@@ -16,7 +18,7 @@ export default async function editMessage(channelId, content, token, messageId )
     });
 
     if (!response.ok) {
-        throw new Error('Failed to send message:', await response.json());
+        throw new SlurpcordError('Failed to send message:', await response.json());
     }
 
     return await response.json();

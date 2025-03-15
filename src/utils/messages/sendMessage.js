@@ -1,6 +1,7 @@
 import axios from 'axios';
 import FormData from 'form-data';
-import { message } from "../datatypes/index.js";
+import { message } from "../structures/index.js";
+import SlurpcordError from '../../errors/index.js';
 
 export default async function sendMessage(channelId, content, token, messageId = null) {
     const formData = new FormData();
@@ -35,7 +36,6 @@ export default async function sendMessage(channelId, content, token, messageId =
         let messagedata = await message(response.data, token);
         return messagedata;
     } catch (error) {
-        console.error("Error sending message:", error.response ? error.response.data : error.message);
-        throw error;
+        throw new SlurpcordError("Error sending message:", error.response ? error.response.data : error.message);
     }
 }

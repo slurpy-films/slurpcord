@@ -1,3 +1,4 @@
+import SlurpcordError from "../../errors/index.js";
 import sendMessage from "../messages/sendMessage.js";
 
 export default async function channel(data, token) {
@@ -31,7 +32,7 @@ export default async function channel(data, token) {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to fetch messages:', await response.json());
+                throw new SlurpcordError('Failed to fetch messages:', await response.json());
             }
         }
     }

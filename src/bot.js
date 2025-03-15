@@ -1,4 +1,5 @@
 import { getCachedChannel, getCachedGuild, getCachedMember, getCachedUser, userIsIsCache, addGuildToCache, getGuild } from './cache/index.js';
+import SlurpcordError from './errors/index.js';
 import { commandInteraction, buttonInteraction, RegisterCommands } from './interactions/index.js';
 import { guild, user, message as messageType } from "./utils/index.js";
 import axios from 'axios';
@@ -123,8 +124,7 @@ export default class Bot {
         });
 
         this.ws.on('error', (error) => {
-            console.error('WebSocket error:', error);
-            this.ws.close();
+            throw new SlurpcordError("WebSocket error", error);
         });
 
         this.ws.on('message', async (data) => {
@@ -194,8 +194,6 @@ export default class Bot {
                         getCachedUser(message.author, this.token),
                         getCachedChannel(message.channel_id, this.token),
                     ]);
-
-
                     message.guild = guild;
                     message.author = userdata;
                     message.channel = channelData;
