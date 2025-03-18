@@ -19,9 +19,4 @@ bot.command("ping", async (cmd) => {
 bot.start();
 ```
 
-## Features
-
-- Easy-to-use commands for managing Discord bots.
-- Supports both message-based commands and slash commands.
-- Built-in caching for faster performance.
-- Lightweight and simple to integrate into your own projects.
+# [Documentation](https://github.com/slurpy-films/slurpcord-docs/)

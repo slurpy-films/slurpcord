@@ -1,8 +1,9 @@
 import { getCachedChannel, getCachedGuild, getCachedMember, getCachedUser, userIsIsCache, addGuildToCache, getGuild } from './cache/index.js';
 import SlurpcordError from './errors/index.js';
 import { commandInteraction, buttonInteraction, RegisterCommands } from './interactions/index.js';
-import { guild, user, message as messageType } from "./utils/index.js";
+import { guild as guildType, user, message as messageType } from "./utils/index.js";
 import axios from 'axios';
+
 
 let sequence = null;
 
@@ -14,6 +15,7 @@ export default class Bot {
     #guilds = new Map();
     #events = new Map();
     #connected = false;
+    #ready = false;
     
 
     constructor(token, prefix = "") {
@@ -217,6 +219,7 @@ export default class Bot {
 
                     this.user = messageData.user;
                     this.user.tag = messageData.user.username + "#" + messageData.user.discriminator;
+                    this.#ready = true;
                     this.ready();
                 }
             } else if (event === "INTERACTION_CREATE") {
@@ -308,8 +311,25 @@ export default class Bot {
                     })
                 }
             } else if (event === "GUILD_CREATE") {
+                if (!this.#ready) return;
                 let guild = messageData;
-                await addGuildToCache(guild.id, guild, this.token);
-        }});
+
+                guild = await guildType(messageData, this.token);
+                await addGuildToCache(guild.id, guild, this.token, true);
+                if (this.#events.get(event)) {
+                    this.#events.get(event).forEach(func => {
+                        func(guild);
+                    })
+                }
+            } else if (event === "GUILD_DELETE") {
+                let guild = messageData;
+                guild = await guildType(messageData, this.token);
+                if (this.#events.get(event)) {
+                    this.#events.get(event).forEach(func => {
+                        func(guild);
+                    });
+                }
+            }
+        });
     }
 }

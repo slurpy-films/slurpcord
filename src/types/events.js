@@ -4,4 +4,6 @@ export default {
     GuildCreate: "GUILD_CREATE",
     MemberJoin: "GUILD_MEMBER_ADD",
     MemberLeave: "GUILD_MEMBER_REMOVE",
+    GuildCreate: "GUILD_CREATE",
+    GuildDelete: "GUILD_DELETE",
 };

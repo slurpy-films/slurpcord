@@ -14,8 +14,8 @@ export async function getCachedGuild(guildId, token) {
     return processedguild;
 }
 
-export async function addGuildToCache(id, data, token) {
-    const processedguild = await guild(data, token);
+export async function addGuildToCache(id, data, token, preprocessed = false) {
+    const processedguild = preprocessed ? data : await guild(data, token);
     cache.set(id, processedguild);
 }
 

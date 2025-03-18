@@ -5,7 +5,7 @@ import { memberIsIsCache, getCachedMember, addMemberToCache } from "../../cache/
 import SlurpcordError from "../../errors/index.js";
 
 export default async function guild(data, token) {
-    const guildData = data;
+    const guildData = data || {};
 
     guildData.members = {
         fetch: async (userId) => {
